@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using SampleAPI.API.Students.Commands;
 using SampleAPI.API.Students.Queries;
 using System.Collections.Generic;
 using System.Net;
@@ -33,6 +34,24 @@ namespace SampleAPI.API.Controllers
 
             return Ok(cardTypes);
         }
+
+
+        /// <summary>
+        /// Add student.
+        /// </summary>
+        /// <param name="name">Name.</param>
+        /// <param name="email">Email.</param>
+        [Route("students/AddStudent")]
+        [HttpPost]
+        [ProducesResponseType((int)HttpStatusCode.Created)]
+        public async Task<IActionResult> AddStudent(
+            [FromBody] StudentDto student)
+        {
+            await _mediator.Send(new AddStudentCommand(student));
+
+            return Created(string.Empty, null);
+        }
+
 
     }
 }

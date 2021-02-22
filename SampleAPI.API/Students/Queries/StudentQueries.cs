@@ -23,7 +23,6 @@ namespace SampleAPI.API.Students.Queries
                 connection.Open();
 
                 const string sql = "SELECT " +
-                                  "[Student].[Uid], " +
                                   "[Student].[Name], " +
                                   "[Student].[Email] " +
                                   "FROM university.Students AS [Student] ";

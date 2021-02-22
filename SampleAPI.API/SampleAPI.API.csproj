@@ -7,6 +7,7 @@
   <ItemGroup>
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.1.0" />
     <PackageReference Include="Dapper" Version="2.0.78" />
+    <PackageReference Include="FluentValidation" Version="9.5.1" />
     <PackageReference Include="MediatR" Version="9.0.0" />
     <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="5.0.3" />
@@ -16,11 +17,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Application\IntegrationEvents\" />
+    <Folder Include="Application\DomainEventHandlers\" />
     <Folder Include="Modules\" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SampleAPI.Domain\SampleAPI.Domain.csproj" />
+    <ProjectReference Include="..\SampleAPI.Infrastructure\SampleAPI.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

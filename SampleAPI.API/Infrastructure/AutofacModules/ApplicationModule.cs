@@ -1,5 +1,10 @@
 ﻿using Autofac;
+using Newtonsoft.Json;
 using SampleAPI.API.Students.Queries;
+using SampleAPI.Domain.AggregatesModel.Students;
+using SampleAPI.Infrastructure.Idempotency;
+using SampleAPI.Infrastructure.Repositories;
+using System;
 
 namespace SampleAPI.API.Infrastructure.AutofacModules
 {
@@ -16,9 +21,20 @@ namespace SampleAPI.API.Infrastructure.AutofacModules
         {
 
             builder.Register(c => new StudentQueries(QueriesConnectionString))
-                .As<IStudentQueries>()
+              .As<IStudentQueries>()
+              .InstancePerLifetimeScope();
+
+            builder.RegisterType<StudentRepository>()
+                .As<IStudentRepository>()
                 .InstancePerLifetimeScope();
 
+            builder.RegisterType<RequestManager>()
+               .As<IRequestManager>()
+               .InstancePerLifetimeScope();
+
+      
         }
+
+
     }
 }

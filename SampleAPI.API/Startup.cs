@@ -1,9 +1,11 @@
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -11,8 +13,13 @@ using Microsoft.OpenApi.Models;
 using SampleAPI.API.Controllers;
 using SampleAPI.API.Infrastructure.AutofacModules;
 using SampleAPI.API.Infrastructure.Filters;
+using SampleAPI.API.Students.Commands;
+using SampleAPI.Domain.AggregatesModel.Students;
+using SampleAPI.Domain.SeedWork;
+using SampleAPI.Infrastructure;
+using SampleAPI.Infrastructure.Repositories;
 using System;
-
+using System.Reflection;
 
 namespace SampleAPI.API
 {
@@ -30,16 +37,20 @@ namespace SampleAPI.API
         {
 
             services
-                  .AddCustomMvc()
-                  .AddCustomSwagger()
-                  .AddCustomConfiguration();
-           
+               .AddCustomMvc()
+               .AddCustomDbContext(Configuration)
+               .AddCustomConfiguration(Configuration)
+               .AddCustomSwagger();
+
+
 
             var container = new ContainerBuilder();
             container.Populate(services);
 
             container.RegisterModule(new MediatorModule());
             container.RegisterModule(new ApplicationModule(Configuration["StudyConnectionString"]));
+            container.RegisterModule(new DomainModule(Configuration["StudyConnectionString"]));
+            //container.RegisterModule(new DomainModule());
 
             return new AutofacServiceProvider(container.Build());
         }
@@ -69,9 +80,12 @@ namespace SampleAPI.API
         }
     static class CustomExtensionsMethods
     {
-        public static IServiceCollection AddCustomConfiguration(this IServiceCollection services)
+
+
+        public static IServiceCollection AddCustomConfiguration(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddOptions();
+            services.Configure<SampleAPISettings>(configuration);
             services.Configure<ApiBehaviorOptions>(options =>
             {
                 options.InvalidModelStateResponseFactory = context =>
@@ -89,6 +103,25 @@ namespace SampleAPI.API
                     };
                 };
             });
+
+            return services;
+        }
+
+        public static IServiceCollection AddCustomDbContext(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddDbContext<StudyContext>(options =>
+            {
+                options.UseSqlServer(configuration["StudyConnectionString"],
+                    sqlServerOptionsAction: sqlOptions =>
+                    {
+                        sqlOptions.MigrationsAssembly(typeof(Startup).GetTypeInfo().Assembly.GetName().Name);
+                        sqlOptions.EnableRetryOnFailure(maxRetryCount: 15, maxRetryDelay: TimeSpan.FromSeconds(30), errorNumbersToAdd: null);
+                    });
+            },
+                       ServiceLifetime.Scoped  //Showing explicitly that the DbContext is shared across the HTTP request scope (graph of objects started in the HTTP request)
+                   );
+
+          
 
             return services;
         }
